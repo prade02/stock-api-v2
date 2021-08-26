@@ -19,6 +19,8 @@ repositories {
 dependencies {
   implementation "com.amazonaws:aws-lambda-java-core:1.2.1"
   implementation "com.amazonaws:aws-lambda-java-events:3.9.0"
+  implementation "com.google.code.gson:gson:2.8.8"
+  implementation "com.amazonaws:aws-java-sdk-dynamodb:1.12.55"
 }
 
 // location where java source files are
@@ -39,6 +41,7 @@ sourceSets {
 
 // build jar with application + dependencies
 task buildFatJar(type: Jar) {
+  duplicatesStrategy = DuplicatesStrategy.INCLUDE
   archiveBaseName = project.name + "-all"
   from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
   with jar
@@ -46,6 +49,7 @@ task buildFatJar(type: Jar) {
 
 // build fat jar with only dependecies
 task buildFatJarWithDependsOnly(type: Jar) {
+  duplicatesStrategy = DuplicatesStrategy.INCLUDE
   archiveBaseName = project.name + "-dependencies"
   from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it)} }
 }
