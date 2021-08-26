@@ -1,0 +1,74 @@
+// java - since we are creating libraries => jar files
+// application - since we do want to run as console application to test
+plugins {
+  id "java"
+  id "application"
+}
+
+// fully qualified class name that contains main method when we run as console application
+mainClassName = "invoker.Application"
+// version to use in jar packaging
+version = "1.0"
+
+// central repository to fetch dependencies from
+repositories {
+  mavenCentral()
+}
+
+// define the external dependencies of this application
+dependencies {
+
+}
+
+// location where java source files are
+sourceSets {
+  main {
+    java {
+      srcDirs "src"
+    }
+  }
+}
+
+// location of where to put the compiled java class files
+sourceSets {
+  main {
+    java.destinationDirectory.set(file("bin"))
+  }
+}
+
+// build jar with application + dependencies
+task buildFatJar(type: Jar) {
+  archiveBaseName = project.name + "-all"
+  from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+  with jar
+}
+
+// build fat jar with only dependecies
+task buildFatJarWithDependsOnly(type: Jar) {
+  archiveBaseName = project.name + "-dependencies"
+  from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it)} }
+}
+
+// build zip file that holds jar for the layer
+task buildZipforLayer(type: Zip) {
+  archiveFileName = project.name + "-layer.zip"
+  destinationDirectory = file("build/distributions")
+  from ("build/libs/stock-api-v2-dependencies-1.0.jar") {
+    into ("java/lib")
+  }
+}
+
+// cleans, creates jar for (app + depends) and depends only
+task buildAll {
+  dependsOn "build"
+  dependsOn "buildFatJarWithDependsOnly"
+  dependsOn "buildZipforLayer"
+  tasks.findByName("buildZipforLayer").mustRunAfter "buildFatJarWithDependsOnly"
+}
+
+// prints java home directory
+task getJavaHome {
+  doLast {
+    println(System.getProperty("java.home"))
+  }
+}
